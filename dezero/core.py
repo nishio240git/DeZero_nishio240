@@ -2,13 +2,14 @@
 import weakref
 import numpy as np
 import contextlib
+import dezero
 
 
 def setup_variable():
     Variable.__add__ = add
     Variable.__radd__ = add
     Variable.__mul__ = mul
-    Variable.__rmul__ = rmul
+    Variable.__rmul__ = mul
     Variable.__neg__ = neg
     Variable.__sub__ = sub
     Variable.__rsub__ = rsub
@@ -83,6 +84,20 @@ class Variable:
 
     def cleargrad(self):
         self.grad = None
+    
+    def reshape(self,*shape):
+        if len(shape) == 1 and isinstance(shape[0],(tuple,list)):
+            shape = shape[0]
+        
+        return dezero.functions.reshape(self,shape) 
+    
+    def transpose(self):
+        return dezero.functions.transpose(self)
+
+    @property
+    def T(self):
+        return dezero.functions.transpose(self)    
+
 
     def backward(self, retain_grad=False,create_graph=False):
         if self.grad is None:
@@ -162,11 +177,17 @@ class Function:
 
 class Add(Function):
     def forward(self, x0, x1):
+        self.x0_shape,self.x1_shape = x0.shape, x1.shape
         y = x0 + x1
         return y
 
     def backward(self, gy):
-        return gy, gy
+        gx0,gx1 = gy,gy
+        if self.x0_shape != self.x1_shape:
+            gx0 = dezero.functions.sum_to(gx0,self.x0_shape)
+            gx1 = dezero.functions.sum_to(gx1,self.x1_shape)
+
+        return gx0, gx1
 
 
 def add(x0, x1):
@@ -272,19 +293,3 @@ Variable.__rsub__ = rsub
 Variable.__truediv__ = div
 Variable.__rtruediv__ = rdiv
 Variable.__pow__ = pow
-
-x = Variable(np.array(2.0))
-y = -x
-print(y)  # variable(-2.0)
-
-y1 = 2.0 - x
-y2 = x - 1.0
-print(y1)  # variable(0.0)
-print(y2)  # variable(1.0)
-
-y = 3.0 / x
-print(y)  # variable(1.5)
-
-y = x ** 3
-y.backward()
-print(y)  # variable(8.0)
