@@ -5,6 +5,7 @@ import contextlib
 import dezero
 
 
+
 def setup_variable():
     Variable.__add__ = add
     Variable.__radd__ = add
@@ -281,6 +282,9 @@ class Pow(Function):
 
 def pow(x, c):
     return Pow(c)(x)
+
+class Parameter(Variable):
+    pass
 
 
 Variable.__add__ = add

@@ -71,6 +71,7 @@ def sum_to(x, shape):
     Returns:
         ndarray: Output array of the shape.
     """
+    #print("utils/sum_to",x,shape)
     ndim = len(shape)
     lead = x.ndim - ndim
     lead_axis = tuple(range(lead))
@@ -79,4 +80,5 @@ def sum_to(x, shape):
     y = x.sum(lead_axis + axis, keepdims=True)
     if lead > 0:
         y = y.squeeze(lead_axis)
+    #print(y)
     return y
