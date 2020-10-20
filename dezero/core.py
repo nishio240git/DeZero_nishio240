@@ -4,8 +4,7 @@ import numpy as np
 import contextlib
 import dezero
 
-
-
+ 
 def setup_variable():
     Variable.__add__ = add
     Variable.__radd__ = add
@@ -17,8 +16,7 @@ def setup_variable():
     Variable.__truediv__ = div
     Variable.__rtruediv__ = rdiv
     Variable.__pow__ = pow
- 
-
+    Variable.__getitem__ = dezero.functions.get_item
 
 
 
@@ -248,9 +246,12 @@ class Div(Function):
         return y
 
     def backward(self, gy):
-        x0, x1 = self.inputs, self.inputs
+        x0, x1 = self.inputs
         gx0 = gy / x1
         gx1 = gy * (-x0 / x1 ** 2)
+        if x0.shape != x1.shape:  # for broadcast
+            gx0 = dezero.functions.sum_to(gx0, x0.shape)
+            gx1 = dezero.functions.sum_to(gx1, x1.shape)
         return gx0, gx1
 
 
@@ -261,7 +262,7 @@ def div(x0, x1):
 
 def rdiv(x0, x1):
     x1 = as_array(x1)
-    return div(x1, x0)
+    return Div()(x1, x0)
 
 
 class Pow(Function):
@@ -286,14 +287,3 @@ def pow(x, c):
 class Parameter(Variable):
     pass
 
-
-Variable.__add__ = add
-Variable.__radd__ = add
-Variable.__mul__ = mul
-Variable.__rmul__ = mul
-Variable.__neg__ = neg
-Variable.__sub__ = sub
-Variable.__rsub__ = rsub
-Variable.__truediv__ = div
-Variable.__rtruediv__ = rdiv
-Variable.__pow__ = pow
