@@ -22,6 +22,7 @@ def setup_variable():
 
 class Config:
     enable_backprop = True
+    train = True
 
 
 @contextlib.contextmanager
@@ -32,6 +33,9 @@ def using_config(name, value):
         yield
     finally:
         setattr(Config, name, old_value)
+
+def test_mode():
+    return using_config('train',False)
 
 
 def no_grad():
@@ -135,6 +139,19 @@ class Variable:
                 for y in f.outputs:
                     y().grad = None  # y is weakref
 
+
+    def unchain(self):
+        self.creator = None
+    
+    def unchain_backward(self):
+        if self.creator is not None:
+            funcs = [self.creator]
+            while funcs:
+                f = funcs.pop()
+                for x in  f.inputs:
+                    if x.creator is not None:
+                        funcs.append(x.creator)
+                        x.unchain()
 
 def as_variable(obj):
     if isinstance(obj, Variable):

@@ -8,25 +8,36 @@ from dezero import DataLoader
 from dezero.models import MLP
 
 
-max_epoch = 5
+max_epoch = 20
 batch_size = 100
 hidden_size = 1000
 lr = 1.0
 
+train_set = dezero.datasets.Spiral(train=True)
+test_set = dezero.datasets.Spiral(train=False)
+train_loader = DataLoader(train_set, batch_size)
+test_loader = DataLoader(test_set, batch_size, shuffle=False)
 
+"""
 train_set = dezero.datasets.MNIST(train=True)
 test_set = dezero.datasets.MNIST(train=False)
 train_loader = DataLoader(train_set, batch_size)
 test_loader = DataLoader(test_set, batch_size, shuffle=False)
+"""
 
-model = MLP((hidden_size,hidden_size, 10),activation=F.ReLU)
+model = MLP((hidden_size,hidden_size, 10),activation=F.relu)
 optimizer = optimizers.SGD(lr).setup(model)
+
+#パラメータの読み込み
+if os.path.exists('my_mlp.npz'):
+    model.load_weights('my_mlp.npz')
+
+
 
 for epoch in range(max_epoch):
     sum_loss, sum_acc = 0, 0
 
     for x, t in train_loader:
-        print(x.shape,t.shape)
         y = model(x)
         loss = F.softmax_cross_entropy(y, t)
         acc = F.accuracy(y, t)
@@ -53,3 +64,4 @@ for epoch in range(max_epoch):
     print('test loss: {:.4f}, accuracy: {:.4f}'.format(
         sum_loss / len(test_set), sum_acc / len(test_set)))
 
+model.save_weights('my_mlp.npz')

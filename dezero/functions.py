@@ -362,3 +362,24 @@ class ReLU(Function):
 def relu(x):
     return ReLU()(x)
 
+def dropout(x, dropout_ratio=0.5):
+    x = as_variable(x)
+
+    if dezero.Config.train:
+        mask = np.random.rand(*x.shape) > dropout_ratio
+        scale = np.array(1.0 - dropout_ratio).astype(x.dtype)
+        y = x*mask / scale
+        return y 
+    
+    else: 
+        return x
+
+
+from dezero.functions_conv import conv2d
+from dezero.functions_conv import deconv2d
+from dezero.functions_conv import conv2d_simple
+from dezero.functions_conv import im2col
+from dezero.functions_conv import col2im
+from dezero.functions_conv import pooling_simple
+from dezero.functions_conv import pooling
+from dezero.functions_conv import average_pooling

@@ -25,6 +25,14 @@ else:
     from dezero.dataloaders import DataLoader
 
     import dezero.datasets
+    import dezero.functions_conv
+    import dezero.dataloaders
+    import dezero.optimizers
+    import dezero.functions
+    import dezero.layers
+    import dezero.utils
+    import dezero.cuda
+    import dezero.transforms
 
 
 
